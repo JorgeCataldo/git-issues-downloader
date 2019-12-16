@@ -120,7 +120,7 @@ const main = exports.main = function (data, requestedOptions) {
       // console.log("data.length = ", data.length); // issue count
 
       if (toscreen) {
-        //displayToScreen(data, nobody, true) // use tabs
+        // displayToScreen(data, nobody, true) // use tabs
         displayToScreen(data, nobody, false) // use commas
       }
 
@@ -246,17 +246,17 @@ const displayToScreen = exports.displayToScreen = function (jsData, noBody, tabs
     const stringLabels = labels.map(label => label.name).toString()
     // console.log("noBody = ", noBody);
     if (noBody) {
-			if (tabs) {
+      if (tabs) {
         return `${object.number}\t"${object.title.replace(/\"/g, '\'')}"\t${object.state}\t${milestone}\t"${stringLabels}"\t${createdAt}$\t${updatedAt}\t${reporter}\n`
-			} else {
+      } else {
         return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}\n`
-			}
+      }
     } else {
-			if (tabs) {
+      if (tabs) {
         return `${object.number}\t"${object.title.replace(/\"/g, '\'')}"\t${object.state}\t${milestone}\t"${stringLabels}"\t${createdAt}\t${updatedAt}\t${reporter}\t"${body.replace(/\"/g, '\'')}"\n`
-			} else {
+      } else {
         return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}, "${body.replace(/\"/g, '\'')}"\n`
-			}
+      }
     }
   }).join(''))
 }
