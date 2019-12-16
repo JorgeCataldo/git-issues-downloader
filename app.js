@@ -9,7 +9,7 @@ const argv = require('yargs')
   .usage('Usage: git-issues-downloader [options] URL \nType git-issues-downloader --help to see a list of all options.')
   .help('h')
   .version()
-	.boolean(['n','t'])
+  .boolean(['n', 't'])
   .alias('h', 'help')
   .alias('v', 'version')
   .alias('u', 'username')
@@ -22,15 +22,15 @@ const argv = require('yargs')
   .describe('password', 'Your GitHub password - use "none" if public repo')
   .describe('filename', 'Name of the output file')
   .describe('nobody', 'Do not display/add body')
-	.describe('toscreen', 'Display to screen')
+  .describe('toscreen', 'Display to screen')
   .default('filename', 'all_issues.csv')
   .default('nobody', false)
   .default('toscreen', false)
   .argv
 
 const outputFileName = argv.filename
-const nobody = (argv.n ? true : false)
-const toscreen = (argv.t ? true : false)
+const nobody = (!!argv.n)
+const toscreen = (!!argv.t)
 
 // callback function for getting input from prompt
 
@@ -57,11 +57,11 @@ const getRequestedOptions = exports.getRequestedOptions = function (username, pa
 
   if (username && password) {
     requestOptions.auth.user = username
-		if (password.match("none")) {
+    if (password.match('none')) {
       requestOptions.auth.pass = ''
-		} else {
+    } else {
       requestOptions.auth.pass = password
-		}
+    }
     callback(requestOptions)
   } else {
     if (password) {
@@ -116,15 +116,15 @@ const main = exports.main = function (data, requestedOptions) {
     } else {
       logExceptOnTest(chalk.green('Successfully requested last page'))
 
-			console.log(data);
-			//console.log("data.length = ", data.length);
+      console.log(data)
+      // console.log("data.length = ", data.length);
 
-			if (toscreen) {
-				displayToScreen(data,nobody)
-			}
+      if (toscreen) {
+        displayToScreen(data, nobody)
+      }
 
       logExceptOnTest('\nConverting issues...')
-      const csvData = convertJSonToCsv(data,nobody)
+      const csvData = convertJSonToCsv(data, nobody)
       logExceptOnTest(chalk.green(`\nSuccessfully converted ${data.length} issues!`))
 
       logExceptOnTest('\nWriting data to csv file')
@@ -138,7 +138,7 @@ const main = exports.main = function (data, requestedOptions) {
 }
 
 // get page url and page number from link
-
+/* eslint-disable no-useless-escape */
 const getUrlAndNumber = exports.getUrlAndNumber = function (link) {
   var pageRegex = link.match(/&page=([\d]+)/)
   var relRegex = link.match(/rel=\"([^\"]+)\"/)
@@ -158,20 +158,20 @@ const responseToObject = exports.responseToObject = function (response) {
     const links = rawLink.split(',')
 
     return links.reduce((acc, link) => {
-      var result = getUrlAndNumber(link);
+      var result = getUrlAndNumber(link)
 
       if (result.rel === 'next') {
-        acc.nextPage = result;
+        acc.nextPage = result
       } else if (result.rel === 'last') {
-        acc.lastPage = result;
+        acc.lastPage = result
       } else if (result.rel === 'first') {
-        acc.firstPage = result;
+        acc.firstPage = result
       } else if (result.rel === 'prev') {
-        acc.prevPage = result;
+        acc.prevPage = result
       }
 
-      return acc;
-    }, {});
+      return acc
+    }, {})
   }
   return false
 }
@@ -206,51 +206,50 @@ const requestBody = exports.requestBody = function (requestedOptions, callback) 
 
 // take JSON data, convert them into CSV format and return them
 
-const convertJSonToCsv = exports.convertJSonToCsv = function (jsData,noBody) {
-  const csv = "Issue Number, Title, Github URL, Labels, State, Milestone, Created At, Updated At, Reporter, Assignee, Body\n";
+const convertJSonToCsv = exports.convertJSonToCsv = function (jsData, noBody) {
+  const csv = 'Issue Number, Title, Github URL, Labels, State, Milestone, Created At, Updated At, Reporter, Assignee, Body\n'
 
   return csv + jsData.map(object => {
-    const createdAt = moment(object.created_at).format('L');
-    const updatedAt = moment(object.updated_at).format('L');
-    const reporter = (object.user && object.user.login) || '';
-    const assignee = (object.assignee && object.assignee.login) || '';
+    const createdAt = moment(object.created_at).format('L')
+    const updatedAt = moment(object.updated_at).format('L')
+    const reporter = (object.user && object.user.login) || ''
+    const assignee = (object.assignee && object.assignee.login) || ''
 
-		const milestone = (object.milestone && object.milestone.title) || '';
-		const body = (object.body) || ' ';
+    const milestone = (object.milestone && object.milestone.title) || ''
+    const body = (object.body) || ' '
     const labels = object.labels
     const stringLabels = labels.map(label => label.name).toString()
-    //return `${object.number}; "${object.title.replace(/\"/g, '\'')}"; ${object.html_url}; "${stringLabels}"; ${object.state}; ${createdAt}; ${updatedAt}; ${reporter}; ${assignee}; "${object.body.replace(/\"/g, '\'')}"\n`
-		//console.log("noBody = ", noBody);
-		if (noBody) {
+    // return `${object.number}; "${object.title.replace(/\"/g, '\'')}"; ${object.html_url}; "${stringLabels}"; ${object.state}; ${createdAt}; ${updatedAt}; ${reporter}; ${assignee}; "${object.body.replace(/\"/g, '\'')}"\n`
+    // console.log("noBody = ", noBody);
+    if (noBody) {
       return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, \n`
-		} else {
+    } else {
       return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, "${body.replace(/\"/g, '\'')}"\n`
-		}
-  }).join('');
+    }
+  }).join('')
 }
-
 
 // take JSON data, and send to screen
 
-const displayToScreen = exports.displayToScreen = function (jsData,noBody) {
-  const csv = "Issue Number\tTitle\tState\tMilestone\tLabels\tCreated At\tUpdated At\tReporter\n";
+const displayToScreen = exports.displayToScreen = function (jsData, noBody) {
+  const csv = 'Issue Number\tTitle\tState\tMilestone\tLabels\tCreated At\tUpdated At\tReporter\n'
 
   console.log(csv + jsData.map(object => {
-    const createdAt = moment(object.created_at).format('L');
-    const updatedAt = moment(object.updated_at).format('L');
-    const reporter = (object.user && object.user.login) || '';
+    const createdAt = moment(object.created_at).format('L')
+    const updatedAt = moment(object.updated_at).format('L')
+    const reporter = (object.user && object.user.login) || ''
 
-		const milestone = (object.milestone && object.milestone.title) || '';
-		const body = (object.body) || ' ';
+    const milestone = (object.milestone && object.milestone.title) || ''
+    const body = (object.body) || ' '
     const labels = object.labels
     const stringLabels = labels.map(label => label.name).toString()
-		//console.log("noBody = ", noBody);
-		if (noBody) {
+    // console.log("noBody = ", noBody);
+    if (noBody) {
       return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}\n`
-		} else {
+    } else {
       return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter} "${body.replace(/\"/g, '\'')}"\n`
-		}
-  }).join(''));
+    }
+  }).join(''))
 }
 
 // execute main function with requested options and condition for URL input
@@ -281,4 +280,3 @@ const argvRepository = argv._[argv._.length - 1]
 
 execute(argvRepository)
 // execute main function with requested options and condition for URL input
-
