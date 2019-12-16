@@ -89,3 +89,8 @@ Automatically fix linting issues
 
 ## Original Code
 The original github repo can be found here: 
+
+https://github.com/remoteorigin/git-issues-downloader
+
+Note: develop branch contains bug fixes for 0.1.3
+
