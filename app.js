@@ -6,13 +6,13 @@ const moment = require('moment')
 const read = require('read')
 const chalk = require('chalk')
 const argv = require('yargs')
-  .usage('Usage: git-issues-downloader [options] URL \nType git-issues-downloader --help to see a list of all options.')
+  .usage('Usage: git-issues-downloader [options] <GitHub repository URL> \nType git-issues-downloader --help to see a list of all options.')
   .help('h')
   .version()
   .boolean(['n', 't'])
   .alias('h', 'help')
   .alias('v', 'version')
-  .alias('u', 'username')
+  .alias('u', 'username') // "none" to skip
   .alias('p', 'password') // "none" to skip
   .alias('f', 'filename')
   .alias('n', 'nobody') // default false
@@ -116,11 +116,12 @@ const main = exports.main = function (data, requestedOptions) {
     } else {
       logExceptOnTest(chalk.green('Successfully requested last page'))
 
-      console.log(data)
-      // console.log("data.length = ", data.length);
+      // console.log(data) // dump all issue JSON
+      // console.log("data.length = ", data.length); // issue count
 
       if (toscreen) {
-        displayToScreen(data, nobody)
+        //displayToScreen(data, nobody, true) // use tabs
+        displayToScreen(data, nobody, false) // use commas
       }
 
       logExceptOnTest('\nConverting issues...')
@@ -231,7 +232,7 @@ const convertJSonToCsv = exports.convertJSonToCsv = function (jsData, noBody) {
 
 // take JSON data, and send to screen
 
-const displayToScreen = exports.displayToScreen = function (jsData, noBody) {
+const displayToScreen = exports.displayToScreen = function (jsData, noBody, tabs) {
   const csv = 'Issue Number\tTitle\tState\tMilestone\tLabels\tCreated At\tUpdated At\tReporter\n'
 
   console.log(csv + jsData.map(object => {
@@ -245,9 +246,17 @@ const displayToScreen = exports.displayToScreen = function (jsData, noBody) {
     const stringLabels = labels.map(label => label.name).toString()
     // console.log("noBody = ", noBody);
     if (noBody) {
-      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}\n`
+			if (tabs) {
+        return `${object.number}\t"${object.title.replace(/\"/g, '\'')}"\t${object.state}\t${milestone}\t"${stringLabels}"\t${createdAt}$\t${updatedAt}\t${reporter}\n`
+			} else {
+        return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}\n`
+			}
     } else {
-      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter} "${body.replace(/\"/g, '\'')}"\n`
+			if (tabs) {
+        return `${object.number}\t"${object.title.replace(/\"/g, '\'')}"\t${object.state}\t${milestone}\t"${stringLabels}"\t${createdAt}\t${updatedAt}\t${reporter}\t"${body.replace(/\"/g, '\'')}"\n`
+			} else {
+        return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}, "${body.replace(/\"/g, '\'')}"\n`
+			}
     }
   }).join(''))
 }
