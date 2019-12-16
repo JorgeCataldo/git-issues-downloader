@@ -106,7 +106,7 @@ const main = exports.main = function (data, requestedOptions) {
     } else {
       logExceptOnTest(chalk.green('Successfully requested last page'))
 
-			//console.log(data);
+			console.log(data);
 			//console.log("data.length = ", data.length);
 
       logExceptOnTest('\nConverting issues...')
@@ -193,7 +193,7 @@ const requestBody = exports.requestBody = function (requestedOptions, callback) 
 // take JSON data, convert them into CSV format and return them
 
 const convertJSonToCsv = exports.convertJSonToCsv = function (jsData,noBody) {
-  const csv = "Issue Number, Title, Github URL, Labels, State, Created At, Updated At, Reporter, Assignee, Body\n";
+  const csv = "Issue Number, Title, Github URL, Labels, State, Milestone, Created At, Updated At, Reporter, Assignee, Body\n";
 
   return csv + jsData.map(object => {
     const createdAt = moment(object.created_at).format('L');
@@ -201,15 +201,16 @@ const convertJSonToCsv = exports.convertJSonToCsv = function (jsData,noBody) {
     const reporter = (object.user && object.user.login) || '';
     const assignee = (object.assignee && object.assignee.login) || '';
 
+		const milestone = (object.milestone && object.milestone.title) || '';
 		const body = (object.body) || ' ';
     const labels = object.labels
     const stringLabels = labels.map(label => label.name).toString()
     //return `${object.number}; "${object.title.replace(/\"/g, '\'')}"; ${object.html_url}; "${stringLabels}"; ${object.state}; ${createdAt}; ${updatedAt}; ${reporter}; ${assignee}; "${object.body.replace(/\"/g, '\'')}"\n`
 		//console.log("noBody = ", noBody);
 		if (noBody) {
-      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, \n`
+      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, \n`
 		} else {
-      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}; "${body.replace(/\"/g, '\'')}"\n`
+      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}; "${body.replace(/\"/g, '\'')}"\n`
 		}
   }).join('');
 }

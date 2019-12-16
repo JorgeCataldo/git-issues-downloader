@@ -6,3 +6,4 @@ coverage/
 all_issues.csv
 yarn-error.log
 .~lock.all_issues.csv#
+all_issues.xls
