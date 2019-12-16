@@ -9,23 +9,28 @@ const argv = require('yargs')
   .usage('Usage: git-issues-downloader [options] URL \nType git-issues-downloader --help to see a list of all options.')
   .help('h')
   .version()
-	.boolean(['n'])
+	.boolean(['n','t'])
   .alias('h', 'help')
   .alias('v', 'version')
   .alias('u', 'username')
-  .alias('p', 'password')
+  .alias('p', 'password') // "none" to skip
   .alias('f', 'filename')
-  .alias('n', 'nobody')
+  .alias('n', 'nobody') // default false
+  .alias('t', 'toscreen') // default false
   .describe('help', 'Show help')
   .describe('username', 'Your GitHub username - required')
   .describe('password', 'Your GitHub password - use "none" if public repo')
   .describe('filename', 'Name of the output file')
   .describe('nobody', 'Do not display/add body')
+	.describe('toscreen', 'Display to screen')
   .default('filename', 'all_issues.csv')
+  .default('nobody', false)
+  .default('toscreen', false)
   .argv
 
 const outputFileName = argv.filename
 const nobody = (argv.n ? true : false)
+const toscreen = (argv.t ? true : false)
 
 // callback function for getting input from prompt
 
@@ -113,6 +118,10 @@ const main = exports.main = function (data, requestedOptions) {
 
 			console.log(data);
 			//console.log("data.length = ", data.length);
+
+			if (toscreen) {
+				displayToScreen(data,nobody)
+			}
 
       logExceptOnTest('\nConverting issues...')
       const csvData = convertJSonToCsv(data,nobody)
@@ -215,9 +224,33 @@ const convertJSonToCsv = exports.convertJSonToCsv = function (jsData,noBody) {
 		if (noBody) {
       return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, \n`
 		} else {
-      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}; "${body.replace(/\"/g, '\'')}"\n`
+      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.html_url}, "${stringLabels}", ${object.state}, ${milestone}, ${createdAt}, ${updatedAt}, ${reporter}, ${assignee}, "${body.replace(/\"/g, '\'')}"\n`
 		}
   }).join('');
+}
+
+
+// take JSON data, and send to screen
+
+const displayToScreen = exports.displayToScreen = function (jsData,noBody) {
+  const csv = "Issue Number\tTitle\tState\tMilestone\tLabels\tCreated At\tUpdated At\tReporter\n";
+
+  console.log(csv + jsData.map(object => {
+    const createdAt = moment(object.created_at).format('L');
+    const updatedAt = moment(object.updated_at).format('L');
+    const reporter = (object.user && object.user.login) || '';
+
+		const milestone = (object.milestone && object.milestone.title) || '';
+		const body = (object.body) || ' ';
+    const labels = object.labels
+    const stringLabels = labels.map(label => label.name).toString()
+		//console.log("noBody = ", noBody);
+		if (noBody) {
+      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter}\n`
+		} else {
+      return `${object.number}, "${object.title.replace(/\"/g, '\'')}", ${object.state}, ${milestone}, "${stringLabels}", ${createdAt}, ${updatedAt}, ${reporter} "${body.replace(/\"/g, '\'')}"\n`
+		}
+  }).join(''));
 }
 
 // execute main function with requested options and condition for URL input
@@ -247,3 +280,5 @@ function logExceptOnTest (string) {
 const argvRepository = argv._[argv._.length - 1]
 
 execute(argvRepository)
+// execute main function with requested options and condition for URL input
+
