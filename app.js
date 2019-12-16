@@ -9,6 +9,7 @@ const argv = require('yargs')
   .usage('Usage: git-issues-downloader [options] URL \nType git-issues-downloader --help to see a list of all options.')
   .help('h')
   .version()
+	.boolean(['n'])
   .alias('h', 'help')
   .alias('v', 'version')
   .alias('u', 'username')
@@ -16,10 +17,10 @@ const argv = require('yargs')
   .alias('f', 'filename')
   .alias('n', 'nobody')
   .describe('help', 'Show help')
-  .describe('username', 'Your GitHub username')
-  .describe('password', 'Your GitHub password')
+  .describe('username', 'Your GitHub username - required')
+  .describe('password', 'Your GitHub password - use "none" if public repo')
   .describe('filename', 'Name of the output file')
-  .describe('nobody', 'do not display/add body')
+  .describe('nobody', 'Do not display/add body')
   .default('filename', 'all_issues.csv')
   .argv
 
@@ -51,7 +52,11 @@ const getRequestedOptions = exports.getRequestedOptions = function (username, pa
 
   if (username && password) {
     requestOptions.auth.user = username
-    requestOptions.auth.pass = password
+		if (password.match("none")) {
+      requestOptions.auth.pass = ''
+		} else {
+      requestOptions.auth.pass = password
+		}
     callback(requestOptions)
   } else {
     if (password) {
