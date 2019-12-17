@@ -16,6 +16,7 @@ Command line application allowing you to download all issues in the CSV format f
 
 ## Usage
 
+```
 Usage: git-issues-downloader [options] <repository URL>
 Type git-issues-downloader --help to see a list of all options.
 
@@ -27,6 +28,7 @@ Options:
   -f, --filename  Name of the output file            [default: "all_issues.csv"]
   -n, --nobody    Do not display/add body             [boolean] [default: false]
   -t, --toscreen  Display to screen                   [boolean] [default: false]
+```
 
 ### Examples
 
